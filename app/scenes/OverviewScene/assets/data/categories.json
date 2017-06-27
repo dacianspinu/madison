@@ -1,0 +1,28 @@
+[{
+  "name": "Feature 1",
+  "imageName": "feature",
+  "description": "Feature 2",
+},
+{
+  "name": "Feature 1",
+  "imageName": "weekschedule",
+  "description": "Feature 2",
+},
+{
+  "name": "Feature 1",
+  "imageName": "communication",
+  "description": "Feature 2",
+},
+{
+  "name": "Feature 1",
+  "imageName": "announcements",
+  "description": "Feature 2",
+  "image": { "url": "./assets/feature.png" },
+},
+{
+  "name": "Feature 1",
+  "imageName": "semesteroverview",
+  "description": "Feature 2",
+  "image": { "url": "./assets/feature.png" },
+},
+]
