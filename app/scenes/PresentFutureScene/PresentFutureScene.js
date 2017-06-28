@@ -121,7 +121,7 @@ export default class PresentFutureScene extends Component {
             <Subtitle>{scheduleItem.name}</Subtitle>
             <Caption>{scheduleItem.start} - {scheduleItem.end}</Caption>
           </View>
-          <Caption>{scheduleItem.room} · grupa {scheduleItem.group} · {scheduleItem.teacher.name}</Caption>
+          <Caption>{scheduleItem.room} · grupa {scheduleItem.group} · {scheduleItem.teacher}</Caption>
         </View>
       </Row>
     )
@@ -137,7 +137,11 @@ export default class PresentFutureScene extends Component {
 
       schedule.map(function(scheduleDay) {
         scheduleDay.map(async function(scheduleItem) {
-            scheduleItem.teacher = teachers[scheduleItem.teacherId];
+            let teacher = "";
+            scheduleItem.teacherId.forEach(function(teacherId) {
+              teacher = teacher + ' ' + teachers[teacherId].name;
+            })
+            scheduleItem.teacher = teacher;
             scheduleItem.group = JSON.parse(student).group;
             return scheduleItem;
         });

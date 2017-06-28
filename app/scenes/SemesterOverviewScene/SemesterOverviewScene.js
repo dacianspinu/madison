@@ -62,7 +62,11 @@ const styles = {
 };
 
 let data = {
-  classes: []
+  classes: [],
+  teachers: {
+    lab: [],
+    lecture: []
+  }
 }
 
 class ThinkScene extends Component {
@@ -74,20 +78,67 @@ class ThinkScene extends Component {
     super(props);
 
     this.renderClassRow = this.renderClassRow.bind(this);
+    this.renderLabTeacherRow = this.renderLabTeacherRow.bind(this);
+    this.renderLectureTeacherRow = this.renderLectureTeacherRow.bind(this);
   }
 
   async componentWillMount() {
     data = await this.getData();
-    console.log(data);
     this.forceUpdate();
   }
 
   async getData() {
     let student = await AsyncStorage.getItem('currentStudent');
-    let classes = await Database.getClassesForCurrentStudent(JSON.parse(student).year);
+
+    let data = await Promise.all([Database.getLoggedInStudentGroupSchedule(JSON.parse(student).group), Database.getTeachers()]);
+
+    let schedule = data[0].val().schedule;
+    let teachers = data[1].val();
+
+    let groupTeachers = {
+      lab: [],
+      lecture: []
+    };
+    let classes = [];
+
+    schedule.map(function(scheduleDay) {
+      scheduleDay.map(function(scheduleItem) {
+        if (scheduleItem.type === 'lecture') {
+          classes.push(scheduleItem);
+
+          scheduleItem.teacherId.map(function(teacherId) {
+            let teacherFoundBefore = false;
+            teacherFoundBefore = groupTeachers.lecture.some(function(groupTeacher) {
+              if (groupTeacher.name === teachers[teacherId].name) {
+                return true;
+              }
+            });
+            if (!teacherFoundBefore) {
+              teachers[teacherId].class = scheduleItem.name;
+              groupTeachers.lecture.push(teachers[teacherId]);
+            }
+          })
+        } else {
+          scheduleItem.teacherId.map(function(teacherId) {
+            let teacherFoundBefore = false;
+            teacherFoundBefore = groupTeachers.lab.some(function(groupTeacher) {
+              if (groupTeacher.name === teachers[teacherId].name) {
+                return true;
+              }
+            });
+            if (!teacherFoundBefore) {
+              teachers[teacherId].class = scheduleItem.name;
+              groupTeachers.lab.push(teachers[teacherId]);
+            }
+          })
+        }
+      });
+    });
+
 
     return {
-      classes: classes.val()
+      classes: classes,
+      teachers: groupTeachers
     }
   }
 
@@ -105,6 +156,46 @@ class ThinkScene extends Component {
         <Divider styleName="line"></Divider>
       </View>
     )
+  };
+
+  renderLabTeacherRow(teacher) {
+    return (
+      <TouchableOpacity>
+        <Row>
+          <Icon name="laptop" />
+          <View styleName="vertical">
+            <View styleName="horizontal space-between">
+              <Subtitle>{teacher.name}</Subtitle>
+            </View>
+            <Text numberOfLines={1}>{teacher.class}</Text>
+            <Caption styleName="multiline">{teacher.emailAddress}</Caption>
+            <Caption numberOfLines={1}>{teacher.website}</Caption>
+
+          </View>
+        </Row>
+        <Divider styleName="line"></Divider>
+      </TouchableOpacity>
+    )
+  }
+
+  renderLectureTeacherRow(teacher) {
+    return (
+      <TouchableOpacity>
+        <Row>
+          <Icon name="news" />
+          <View styleName="vertical">
+            <View styleName="horizontal space-between">
+              <Subtitle>{teacher.name}</Subtitle>
+            </View>
+            <Text numberOfLines={1}>{teacher.class}</Text>
+            <Caption styleName="multiline">{teacher.emailAddress}</Caption>
+            <Caption numberOfLines={1}>{teacher.website}</Caption>
+
+          </View>
+        </Row>
+        <Divider styleName="line"></Divider>
+      </TouchableOpacity>
+    )
   }
 
   render() {
@@ -117,21 +208,17 @@ class ThinkScene extends Component {
           <Tabs>
             {/* First tab */}
             <View title="TEACHERS" style={styles.content}>
-              <TouchableOpacity onPress={() => onButtonPress({key: "HomeworkScene", title: "Tema ML"})}>
-                <Row>
-                <Image
-                  styleName="small-avatar top"
-                  source={{ uri: 'https://shoutem.github.io/img/ui-toolkit/examples/image-11.png' }}
-                />
-                <View styleName="vertical">
-                  <View styleName="horizontal space-between">
-                    <Subtitle>Radulescu Vlad</Subtitle>
-                  </View>
-                  <Text>Arhitectura Calculatoarelor si Sisteme de Operare</Text>
-                  <Caption styleName="multiline">Teacher short bio</Caption>
-                </View>
-                </Row>
-              </TouchableOpacity>
+              <ScrollView>
+                <ListView
+                  data={ data.teachers.lab }
+                  renderRow = {teacher => this.renderLabTeacherRow(teacher)}>
+                </ListView>
+                <Divider></Divider>
+                <ListView
+                  data={ data.teachers.lecture }
+                  renderRow = {course => this.renderLectureTeacherRow(course)}>
+                </ListView>
+              </ScrollView>
             </View>
             {/* Second tab */}
             <View title="CLASSES" style={styles.content}>
@@ -140,6 +227,7 @@ class ThinkScene extends Component {
                   data={ data.classes }
                   renderRow = {course => this.renderClassRow(course)}>
                 </ListView>
+
               </ScrollView>
             </View>
             {/* Third tab */}

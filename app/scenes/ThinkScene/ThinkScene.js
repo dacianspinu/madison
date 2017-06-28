@@ -86,6 +86,9 @@ class ThinkScene extends Component {
       tests = tests.val();
       exams = exams.val();
 
+      homeworks = Object.keys(homeworks).map(function (key) { return homeworks[key]; });
+      tests = Object.keys(tests).map(function (key) { return tests[key]; });
+
       return {
         homeworks: homeworks,
         tests: tests,
