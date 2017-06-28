@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
-import {Dimensions, StyleSheet} from 'react-native';
+import {Dimensions, StyleSheet, AsyncStorage, ScrollView} from 'react-native';
 
 import Tabs from './../components/Tabs';
 
 import {
   Image,
   ListView,
-  Tile,
   Title,
   Subtitle,
   TouchableOpacity,
@@ -27,6 +26,8 @@ import { navigatePush } from '../../reducers/redux';
 import {
   NavigationBar,
 } from '@shoutem/ui/navigation';
+
+import Database from '../../database/Database';
 
 const width = Dimensions.get('window').width; //full width
 const height = Dimensions.get('window').height; //full height
@@ -60,7 +61,9 @@ const styles = {
   },
 };
 
-const thirdTab = "GRADES";
+let data = {
+  classes: []
+}
 
 class ThinkScene extends Component {
   static propTypes = {
@@ -69,9 +72,40 @@ class ThinkScene extends Component {
 
   constructor(props) {
     super(props);
+
+    this.renderClassRow = this.renderClassRow.bind(this);
   }
 
+  async componentWillMount() {
+    data = await this.getData();
+    console.log(data);
+    this.forceUpdate();
+  }
 
+  async getData() {
+    let student = await AsyncStorage.getItem('currentStudent');
+    let classes = await Database.getClassesForCurrentStudent(JSON.parse(student).year);
+
+    return {
+      classes: classes.val()
+    }
+  }
+
+  renderClassRow(course) {
+    return (
+      <View>
+        <Row styleName="small">
+          <Icon name="news" />
+          <View styleName="vertical">
+            <View styleName="horizontal space-between">
+              <Subtitle>{course.name}</Subtitle>
+            </View>
+          </View>
+        </Row>
+        <Divider styleName="line"></Divider>
+      </View>
+    )
+  }
 
   render() {
     const { onButtonPress } = this.props;
@@ -101,15 +135,15 @@ class ThinkScene extends Component {
             </View>
             {/* Second tab */}
             <View title="CLASSES" style={styles.content}>
-              <Text style={styles.header}>
-                You lucky guy ...
-              </Text>
-              <Text style={styles.text}>
-                You have no tests these days
-              </Text>
+              <ScrollView>
+                <ListView
+                  data={ data.classes }
+                  renderRow = {course => this.renderClassRow(course)}>
+                </ListView>
+              </ScrollView>
             </View>
             {/* Third tab */}
-            <View title={thirdTab} style={styles.content}>
+            <View title="GRADES" style={styles.content}>
               <Row styleName="small">
                 <Icon name="laptop" />
                 <View styleName="vertical">

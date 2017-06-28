@@ -4,7 +4,6 @@ import {Dimensions, StyleSheet, AsyncStorage, ScrollView} from 'react-native';
 import Tabs from './../components/Tabs';
 
 import {
-  Image,
   ListView,
   Tile,
   Title,
