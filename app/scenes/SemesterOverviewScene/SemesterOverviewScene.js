@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Dimensions, StyleSheet, Text} from 'react-native';
+import {Dimensions, StyleSheet} from 'react-native';
 
 import Tabs from './../components/Tabs';
 
@@ -15,7 +15,8 @@ import {
   Row,
   Icon,
   View,
-  Caption
+  Caption,
+  Text
 } from '@shoutem/ui';
 
 import * as firebase from 'firebase';
@@ -70,7 +71,7 @@ class ThinkScene extends Component {
     super(props);
   }
 
-  
+
 
   render() {
     const { onButtonPress } = this.props;
@@ -91,8 +92,8 @@ class ThinkScene extends Component {
                 <View styleName="vertical">
                   <View styleName="horizontal space-between">
                     <Subtitle>Radulescu Vlad</Subtitle>
-                    <Caption>ACSO</Caption>
                   </View>
+                  <Text>Arhitectura Calculatoarelor si Sisteme de Operare</Text>
                   <Caption styleName="multiline">Teacher short bio</Caption>
                 </View>
                 </Row>

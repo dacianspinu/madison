@@ -42,33 +42,27 @@ const IMAGES = {
 const FEATURES = [
   {
     key: "PresentFutureScene",
-    title: "Present & ... FUTURE!",
-    name: "Present & ... FUTURE!",
-    description: weekStartDay + ' - ' + weekEndDay,
+    name: "Timetable",
     background: IMAGES.week
   },
   {
     key: "ThinkScene",
-    name: "Stuff you need to think about",
-    description: "Homeworks, Tests, Exams",
+    name: "Homeworks, Tests, Exams",
     background: IMAGES.exams
   },
   {
     key: "SemesterOverviewScene",
-    name: "Semester overview",
-    description: "Teachers, Classes, Grades",
+    name: "Teachers, Classes, Your Grades",
     background: IMAGES.semesteroverview
   },
   {
     key: "AnnouncementsScene",
     name: "Announcements",
-    description: "Really important messages",
     background: IMAGES.announcements
   },
   {
     key: "ConversationsScene",
     name: "Communication",
-    description: "Teachers & Collegues",
     background: IMAGES.communication
   }
 ];
@@ -84,10 +78,6 @@ class OverviewScene extends Component {
     this.renderRow = this.renderRow.bind(this);
   }
 
-  getCategories() {
-    return require('./assets/data/categories.json');
-  }
-
   renderRow(feature) {
     const { onButtonPress } = this.props;
 
@@ -99,7 +89,6 @@ class OverviewScene extends Component {
         >
           <Tile>
             <Title styleName="md-gutter-bottom">{feature.name}</Title>
-            <Subtitle styleName="sm-gutter-horizontal">{feature.description}</Subtitle>
           </Tile>
         </Image>
         <Divider styleName="line" />

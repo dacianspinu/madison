@@ -59,6 +59,65 @@ class Database {
       let path = "/teachers";
 
       return firebase.database().ref(path).once('value');
+    };
+
+    static getClassesForCurrentStudent(year) {
+      const thisDate = new Date();
+      const currentMonth = thisDate.getMonth();
+      let semester;
+
+      if (currentMonth >= 9 && currentMonth <= 2) {
+        semester = 0;
+      } else {
+        semester = 1;
+      }
+
+      let path = '/courses/years/' + (year - 1) + '/semesters/' + semester;
+      console.log(path);
+
+      return firebase.database().ref(path).once('value');
+    };
+
+    static saveHomeworkToStudentProfile(studentId, data) {
+      let path = "/students/" + studentId + '/homeworks';
+
+      return firebase.database().ref(path).push(data);
+    };
+
+    static saveTestToStudentProfile(studentId, data) {
+      let path = "/students/" + studentId + '/tests';
+
+      return firebase.database().ref(path).push(data);
+    };
+
+    static getCurrentStudentHomeworks(studentId) {
+      let path = "/students/" + studentId + '/homeworks';
+
+      return firebase.database().ref(path).once('value');
+    };
+
+    static getCurrentStudentTests(studentId) {
+      let path = "/students/" + studentId + '/tests';
+
+      return firebase.database().ref(path).once('value');
+    };
+
+    static getCurrentStudentExams(year) {
+      const thisDate = new Date();
+      const currentMonth = thisDate.getMonth();
+      let semester;
+
+      if (currentMonth >= 9 && currentMonth <= 2) {
+        semester = 1;
+      } else {
+        semester = 2;
+      }
+
+      let path = "/exams/semester/" + semester + "/years/" + (year-1);
+
+      console.log(path);
+
+      return firebase.database().ref(path).once('value');
     }
 
 }

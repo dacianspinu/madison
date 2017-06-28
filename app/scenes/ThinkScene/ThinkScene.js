@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Dimensions, StyleSheet, AsyncStorage} from 'react-native';
+import {Dimensions, StyleSheet, AsyncStorage, ScrollView} from 'react-native';
 
 import Tabs from './../components/Tabs';
 
@@ -43,13 +43,18 @@ const styles = {
   button: {
     marginTop: 20,
     marginBottom: 20
+  },
+  multilineText: {
+    fontSize: 12
   }
 };
 
 const thirdTab = "EXAMS";
 
 let data = {
-  homeworks: []
+  homeworks: [],
+  tests: [],
+  exams: []
 };
 
 class ThinkScene extends Component {
@@ -60,7 +65,10 @@ class ThinkScene extends Component {
   constructor(props) {
     super(props);
 
-    this.renderHomework = this.renderHomework.bind(this);
+    this.renderHomeworkRow = this.renderHomeworkRow.bind(this);
+    this.goToCreateHomework = this.goToCreateHomework.bind(this);
+
+    this.renderTestRow = this.renderTestRow.bind(this);
   }
 
   async componentWillMount() {
@@ -71,17 +79,44 @@ class ThinkScene extends Component {
   async getData() {
     try {
       let student = await AsyncStorage.getItem('currentStudent');
-      let homeworks = await Database.getLoggedInStudentHomeworks(JSON.parse(student).group);
+      let homeworks = await Database.getCurrentStudentHomeworks(JSON.parse(student).uid);
+      let tests = await Database.getCurrentStudentTests(JSON.parse(student).uid);
+      let exams = await Database.getCurrentStudentExams(JSON.parse(student).year)
+
+      homeworks = homeworks.val();
+      tests = tests.val();
+      exams = exams.val();
+
       return {
-        homeworks: homeworks.val()
+        homeworks: homeworks,
+        tests: tests,
+        exams: exams
       }
     } catch (error) {
       console.log(error);
     }
   };
 
-  renderHomework(homework) {
+  goToCreateHomework() {
+    const propsObject = this.props;
+    const homework = {};
+    homework.key = "CreateHomeworkScene";
+    homework.title = "Create a new homework";
 
+    propsObject.onButtonPress(homework);
+  };
+
+  goToCreateTest() {
+    const propsObject = this.props;
+    const homework = {};
+
+    homework.key = "CreateTestScene";
+    homework.title = "Add a new test";
+
+    propsObject.onButtonPress(homework);
+  }
+
+  renderHomeworkRow(homework) {
     const { onButtonPress } = this.props;
     homework.key = "HomeworkScene";
     return (
@@ -95,10 +130,44 @@ class ThinkScene extends Component {
             </View>
           </View>
         </Row>
+        <Divider styleName="line"></Divider>
       </TouchableOpacity>
     )
   }
 
+  renderTestRow(test) {
+    return (
+      <TouchableOpacity>
+        <Row styleName="small" >
+          <Icon name="edit" />
+          <View styleName="vertical">
+            <View styleName="horizontal space-between">
+              <Subtitle>{test.class}</Subtitle>
+              <Caption>{test.dueDate}</Caption>
+            </View>
+            <Text styleName="multiline" style={styles.multilineText}>{test.notes}</Text>
+          </View>
+        </Row>
+        <Divider styleName="line"></Divider>
+      </TouchableOpacity>
+    )
+  }
+
+  renderExamRow(exam) {
+    return (
+        <Row>
+          <Icon name="news" />
+          <View styleName="vertical">
+            <View styleName="horizontal space-between">
+              <Subtitle>{exam.name}</Subtitle>
+            </View>
+            <Caption>{exam.day}</Caption>
+            <Caption>Semiyear A : {exam.when.A.start} - {exam.when.A.end}</Caption>
+            <Caption>Semiyear B : {exam.when.B.start} - {exam.when.B.end}</Caption>
+        </View>
+      </Row>
+    )
+  }
   render() {
     const { onButtonPress } = this.props;
 
@@ -109,42 +178,45 @@ class ThinkScene extends Component {
           <Tabs>
             {/* First tab */}
             <View title="HOMEWORKS" style={styles.content}>
-              <View styleName="horizontal h-center">
-                <Button styleName="dark" style={styles.button}>
-                  <Icon name="comment" />
-                  <Text>ADD NEW HOMEWORK</Text>
-                </Button>
-              </View>
-              <ListView
-                data={ data.homeworks }
-                renderRow = {homework => this.renderHomework(homework)}
-              />
+              <ScrollView>
+                <View styleName="horizontal h-center">
+                  <Button styleName="dark" style={styles.button} onPress={() => this.goToCreateHomework()}>
+                    <Icon name="edit" />
+                    <Text>ADD NEW HOMEWORK</Text>
+                  </Button>
+                </View>
+                  <ListView
+                    data={ data.homeworks }
+                    renderRow = {homework => this.renderHomeworkRow(homework)}
+                    style = {styles.list}
+                  />
+              </ScrollView>
             </View>
             {/* Second tab */}
             <View title="TESTS" style={styles.content}>
-              <Row styleName="small">
-                <Icon name="pin" />
-                <View styleName="vertical">
-                  <View styleName="horizontal space-between">
-                    <Subtitle>ACSO</Subtitle>
-                    <Caption>24.06.2017 · 16:00 - 16:45</Caption>
-                  </View>
-                  <Caption>C2 · Radulescu Vlad</Caption>
+              <ScrollView>
+                <View styleName="horizontal h-center">
+                  <Button styleName="dark" style={styles.button} onPress={() => this.goToCreateTest()}>
+                    <Icon name="edit" />
+                    <Text>ADD NEW TEST</Text>
+                  </Button>
                 </View>
-              </Row>
+                  <ListView
+                    data={ data.tests }
+                    renderRow = {test => this.renderTestRow(test)}
+                    style = {styles.list}
+                  />
+              </ScrollView>
             </View>
             {/* Third tab */}
             <View title={thirdTab} style={styles.content}>
-              <Row styleName="small">
-                <Icon name="pin" />
-                <View styleName="vertical">
-                  <View styleName="horizontal space-between">
-                    <Subtitle>ACSO</Subtitle>
-                    <Caption>24.06.2017 · 16:00 - 16:45</Caption>
-                  </View>
-                  <Caption>C2 · Radulescu Vlad</Caption>
-                </View>
-              </Row>
+              <ScrollView>
+                <ListView
+                  data={ data.exams }
+                  renderRow = {exam => this.renderExamRow(exam)}
+                  style = {styles.list}
+                />
+              </ScrollView>
             </View>
 
           </Tabs>
@@ -156,9 +228,8 @@ class ThinkScene extends Component {
 
 const mapDispatchToProps = (dispatch) => ({
   onButtonPress: (homework) => {
-    console.log(homework);
     dispatch(navigatePush({
-      key: "HomeworkScene",
+      key: homework.key,
       title: homework.title,
     }, { homework }));
   },
