@@ -15,7 +15,8 @@ import {
   Icon,
   View,
   Caption,
-  Text
+  Text,
+  Button
 } from '@shoutem/ui';
 
 import * as firebase from 'firebase';
@@ -34,23 +35,10 @@ const height = Dimensions.get('window').height; //full height
 
 
 const styles = {
-  // App container
   container: {
     flex: 1,                            // Take up all screen
     backgroundColor: '#F65A41',         // Background color
   },
-  // Tab content container
-  content: {
-  },
-  // Content header
-  header: {
-    color: 'white',
-    textAlign: 'center',               // White color
-    fontFamily: 'Avenir',               // Change font family
-    fontSize: 20,                       // Bigger font size
-    marginTop: 40
-  },
-  // Content text
   text: {
     marginHorizontal: 20,               // Add horizontal margin
     color: 'white',                   // Semi-transparent text
@@ -59,6 +47,16 @@ const styles = {
     fontSize: 18,
     marginBottom: 20
   },
+  button: {
+    marginTop: 20,
+    marginBottom: 20
+  },
+  title: {
+    color: 'white',
+    marginLeft: 20,
+    marginTop: 10,
+    marginBottom: 10
+  }
 };
 
 let data = {
@@ -66,7 +64,8 @@ let data = {
   teachers: {
     lab: [],
     lecture: []
-  }
+  },
+  grades: []
 }
 
 class ThinkScene extends Component {
@@ -77,9 +76,11 @@ class ThinkScene extends Component {
   constructor(props) {
     super(props);
 
-    this.renderClassRow = this.renderClassRow.bind(this);
-    this.renderLabTeacherRow = this.renderLabTeacherRow.bind(this);
-    this.renderLectureTeacherRow = this.renderLectureTeacherRow.bind(this);
+    this.renderClassRow           = this.renderClassRow.bind(this);
+    this.renderLabTeacherRow      = this.renderLabTeacherRow.bind(this);
+    this.renderLectureTeacherRow  = this.renderLectureTeacherRow.bind(this);
+    this.renderGradeRow           = this.renderGradeRow.bind(this);
+    this.goToCreateGrade          = this.goToCreateGrade.bind(this);
   }
 
   async componentWillMount() {
@@ -90,10 +91,14 @@ class ThinkScene extends Component {
   async getData() {
     let student = await AsyncStorage.getItem('currentStudent');
 
-    let data = await Promise.all([Database.getLoggedInStudentGroupSchedule(JSON.parse(student).group), Database.getTeachers()]);
+    let data = await Promise.all([Database.getLoggedInStudentGroupSchedule(JSON.parse(student).group), Database.getTeachers(), Database.getLoggedInStudentGrades(JSON.parse(student).uid)]);
 
     let schedule = data[0].val().schedule;
     let teachers = data[1].val();
+    let grades   = data[2].val();
+
+    grades = Object.keys(grades).map(function (key) { return grades[key]; });
+
 
     let groupTeachers = {
       lab: [],
@@ -138,7 +143,8 @@ class ThinkScene extends Component {
 
     return {
       classes: classes,
-      teachers: groupTeachers
+      teachers: groupTeachers,
+      grades: grades
     }
   }
 
@@ -196,6 +202,40 @@ class ThinkScene extends Component {
         <Divider styleName="line"></Divider>
       </TouchableOpacity>
     )
+  };
+
+  renderGradeRow(grade) {
+    let icon = "";
+    if (grade.type === 'HOMEWORK' || grade.type === 'TEST') {
+      icon = "laptop";
+    } else {
+      icon = "news"
+    }
+    return (
+      <View>
+        <Row styleName="small">
+          <Icon name={icon} />
+          <View styleName="vertical">
+            <View styleName="horizontal space-between">
+              <Subtitle>{grade.class}</Subtitle>
+              <Caption>{grade.grade}</Caption>
+            </View>
+            <Caption>{grade.type}     ·    {grade.date}</Caption>
+          </View>
+        </Row>
+        <Divider styleName="line"></Divider>
+      </View>
+
+    )
+  }
+
+  goToCreateGrade() {
+    const propsObject = this.props;
+    const grade = {};
+    grade.key = "CreateGradeScene";
+    grade.title = "Add a new grade";
+
+    propsObject.onButtonPress(grade);
   }
 
   render() {
@@ -209,15 +249,20 @@ class ThinkScene extends Component {
             {/* First tab */}
             <View title="TEACHERS" style={styles.content}>
               <ScrollView>
+              <Title style={styles.title}>· Laboratory teachers</Title>
+              <ScrollView>
                 <ListView
                   data={ data.teachers.lab }
                   renderRow = {teacher => this.renderLabTeacherRow(teacher)}>
                 </ListView>
-                <Divider></Divider>
+              </ScrollView>
+              <Title style={styles.title}>· Lecture teachers</Title>
+              <ScrollView>
                 <ListView
                   data={ data.teachers.lecture }
                   renderRow = {course => this.renderLectureTeacherRow(course)}>
                 </ListView>
+              </ScrollView>
               </ScrollView>
             </View>
             {/* Second tab */}
@@ -227,31 +272,22 @@ class ThinkScene extends Component {
                   data={ data.classes }
                   renderRow = {course => this.renderClassRow(course)}>
                 </ListView>
-
               </ScrollView>
             </View>
             {/* Third tab */}
             <View title="GRADES" style={styles.content}>
-              <Row styleName="small">
-                <Icon name="laptop" />
-                <View styleName="vertical">
-                  <View styleName="horizontal space-between">
-                    <Subtitle>ACSO</Subtitle>
-                    <Caption>7.50</Caption>
-                  </View>
-                  <Caption>Examen/Test/Tema     ·    23.05.2017</Caption>
+              <ScrollView>
+                <View styleName="horizontal h-center">
+                  <Button styleName="dark" style={styles.button} onPress={() => this.goToCreateGrade()}>
+                    <Icon name="edit" />
+                    <Text>ADD NEW GRADE</Text>
+                  </Button>
                 </View>
-              </Row>
-              <Row styleName="small">
-                <Icon name="news" />
-                <View styleName="vertical">
-                  <View styleName="horizontal space-between">
-                    <Subtitle>ACSO</Subtitle>
-                    <Caption>7.50</Caption>
-                  </View>
-                  <Caption>Examen/Test/Tema     ·    23.05.2017</Caption>
-                </View>
-              </Row>
+                <ListView
+                  data={ data.grades }
+                  renderRow = {grade => this.renderGradeRow(grade)}>
+                </ListView>
+              </ScrollView>
             </View>
 
           </Tabs>
@@ -262,11 +298,11 @@ class ThinkScene extends Component {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  onButtonPress: (type) => {
+  onButtonPress: (grade) => {
     dispatch(navigatePush({
-      key: type.key,
-      title: type.title,
-    }, { type }));
+      key: grade.key,
+      title: grade.title,
+    }, { grade }));
   },
 });
 

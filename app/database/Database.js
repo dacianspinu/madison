@@ -118,6 +118,18 @@ class Database {
       console.log(path);
 
       return firebase.database().ref(path).once('value');
+    };
+
+    static saveGradeToStudentProfile(studentId, data) {
+      let path = "/students/" + studentId + '/grades';
+
+      return firebase.database().ref(path).push(data);
+    };
+
+    static getLoggedInStudentGrades(studentId) {
+      let path = "/students/" + studentId + '/grades';
+
+      return firebase.database().ref(path).once('value');
     }
 
 }

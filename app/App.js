@@ -22,6 +22,7 @@ import AnnouncementsScene from './scenes/AnnouncementsScene/AnnouncementsScene';
 import ConversationsScene from './scenes/CommunicationScene/ConversationsScene/ConversationsScene';
 import CreateHomeworkScene from './scenes/CreateHomeworkScene/CreateHomeworkScene';
 import CreateTestScene from './scenes/CreateTestScene/CreateTestScene';
+import CreateGradeScene from './scenes/CreateGradeScene/CreateGradeScene';
 
 
 let Scenes = {
@@ -34,7 +35,8 @@ let Scenes = {
   'AnnouncementsScene': AnnouncementsScene,
   'ConversationsScene': ConversationsScene,
   'CreateHomeworkScene': CreateHomeworkScene,
-  'CreateTestScene': CreateTestScene
+  'CreateTestScene': CreateTestScene,
+  'CreateGradeScene': CreateGradeScene
 }
 
 let firebaseApp = Database.initializeApplication();

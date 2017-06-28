@@ -47,7 +47,7 @@ const styles = {
     height: 40
   },
   textInputBigger: {
-    height: 200,
+    height: 60,
     marginTop: 20,
     marginBottom: 30,
     width: width - 40,
@@ -79,18 +79,26 @@ class CreateGradeScene extends Component {
       classes: [{
         name: "Loading ..."
       }],
+      grade: 10,
       studentId: "",
-      notes: ""
+      gradeTypes: [{
+        name: "TEST"
+      }, {
+        name: "HOMEWORK"
+      }, {
+        name: "EXAM"
+      }]
     }
 
     this.updateDate = this.updateDate.bind(this);
-    this.saveTest = this.saveTest.bind(this);
+    this.saveGrade = this.saveGrade.bind(this);
   }
 
   async componentWillMount() {
     classes = await this.getClasses();
     this.setState({classes: classes});
     this.setState({selectedClass: classes[0]});
+    this.setState({selectedGradeType: this.state.gradeTypes[0]})
   }
 
   async getClasses() {
@@ -99,7 +107,6 @@ class CreateGradeScene extends Component {
       let classes = await Database.getClassesForCurrentStudent(JSON.parse(student).year);
 
       this.setState({studentId: JSON.parse(student).uid});
-      console.log(classes.val())
       return classes.val();
     } catch(e) {
       console.log(e);
@@ -111,16 +118,17 @@ class CreateGradeScene extends Component {
     this.setState({date: date});
   }
 
-  saveTest() {
+  saveGrade() {
     const { navigateBack } = this.props;
 
     var objectToSend = {
       class: this.state.selectedClass.name,
-      dueDate: moment(this.state.date).format('M.DD.YYYY'),
-      notes: this.state.notes
+      type: this.state.selectedGradeType.name,
+      date: moment(this.state.date).format('D.MM.YYYY'),
+      grade: this.state.grade
     }
 
-    Database.saveTestToStudentProfile(this.state.studentId, objectToSend).then(function(response) {
+    Database.saveGradeToStudentProfile(this.state.studentId, objectToSend).then(function(response) {
       navigateBack();
     }, function(error) {
 
@@ -151,7 +159,23 @@ class CreateGradeScene extends Component {
           <View styleName="horizontal h-center">
             <Row styleName="small" style={styles.row}>
               <Icon name="web" />
-              <Text>Due Date</Text>
+              <Text>Type</Text>
+            </Row>
+          </View>
+          <View>
+            <DropDownMenu
+              style={styles.dropDown}
+              options={this.state.gradeTypes}
+              selectedOption={this.state.selectedGradeType ? this.state.selectedGradeType : this.state.gradeTypes[0]}
+              onOptionSelected={(clickedGradeType) => this.setState({ selectedGradeType: clickedGradeType })}
+              titleProperty="name"
+              valueProperty="name"
+            />
+          </View>
+          <View styleName="horizontal h-center">
+            <Row styleName="small" style={styles.row}>
+              <Icon name="web" />
+              <Text>Date</Text>
             </Row>
           </View>
           <View>
@@ -159,25 +183,24 @@ class CreateGradeScene extends Component {
               date={this.state.date}
               onDateChange = {this.updateDate}
               mode="date"
-              minimumDate = {this.state.today}
               />
           </View>
           <View styleName="horizontal h-center">
             <Row styleName="small" style={styles.row}>
               <Icon name="web" />
-              <Text>Notes</Text>
+              <Text>Given grade</Text>
             </Row>
           </View>
             <TextInput
-              placeholder={'Add a few details for this test if necessary ... '}
+              placeholder={'Write down your grade ... '}
               style = {styles.textInputBigger}
-              multiline={true}
-              onChangeText={(notes) => this.setState({notes: notes})}
+              multiline={false}
+              onChangeText={(grade) => this.setState({grade: grade})}
             />
 
-            <Button styleName="light" style={styles.saveButton} onPress={() => this.saveTest()}>
+            <Button styleName="light" style={styles.saveButton} onPress={() => this.saveGrade()}>
               <Icon name="comment" style={styles.saveButtonText}/>
-              <Text style={styles.saveButtonText}>ADD NEW TEST</Text>
+              <Text style={styles.saveButtonText}>ADD NEW GRADE</Text>
             </Button>
           </ScrollView>
 

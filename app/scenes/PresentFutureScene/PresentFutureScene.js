@@ -107,7 +107,7 @@ export default class PresentFutureScene extends Component {
       thirdTab = "WEEKEND";
 
       firstTabData = schedule[currentDayOfTheWeek];
-      secondTabData = schedue[currentDayOfTheWeek + 1];
+      secondTabData = schedule[currentDayOfTheWeek + 1];
     }
     this.forceUpdate();
   }
