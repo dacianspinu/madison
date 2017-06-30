@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Dimensions, StyleSheet, AsyncStorage, ScrollView} from 'react-native';
+import {Dimensions, StyleSheet, AsyncStorage, ScrollView, Linking} from 'react-native';
 
 import Tabs from './../components/Tabs';
 
@@ -68,7 +68,7 @@ let data = {
   grades: []
 }
 
-class ThinkScene extends Component {
+class SemesterOverview extends Component {
   static propTypes = {
     onButtonPress: React.PropTypes.func
   };
@@ -81,24 +81,48 @@ class ThinkScene extends Component {
     this.renderLectureTeacherRow  = this.renderLectureTeacherRow.bind(this);
     this.renderGradeRow           = this.renderGradeRow.bind(this);
     this.goToCreateGrade          = this.goToCreateGrade.bind(this);
+
+    this.openLink                 = this.openLink.bind(this);
+
+    this.state = {
+      grades: [
+        {
+          class: "Waiting ..."
+        }
+      ],
+      teachers: {
+        lab: [{
+          name: "Waiting ..."
+        }],
+        lecture: [{
+          name: "Waiting ..."
+        }]
+      },
+      classes: [ {
+        name: "Wairing"
+      } ]
+    };
   }
 
   async componentWillMount() {
-    data = await this.getData();
-    this.forceUpdate();
+    await this.getData();
   }
 
   async getData() {
+    let self = this;
     let student = await AsyncStorage.getItem('currentStudent');
 
-    let data = await Promise.all([Database.getLoggedInStudentGroupSchedule(JSON.parse(student).group), Database.getTeachers(), Database.getLoggedInStudentGrades(JSON.parse(student).uid)]);
+    let promises = await Promise.all([Database.getLoggedInStudentGroupSchedule(JSON.parse(student).group, JSON.parse(student).year), Database.getTeachers(), Database.getLoggedInStudentGrades(JSON.parse(student).uid)]);
 
-    let schedule = data[0].val().schedule;
-    let teachers = data[1].val();
-    let grades   = data[2].val();
+    let schedule = promises[0].val().schedule;
+    let teachers = promises[1].val();
+    let grades = [];
 
-    grades = Object.keys(grades).map(function (key) { return grades[key]; });
-
+    promises[2].on('value', function(snapshot) {
+      grades = snapshot.val();
+      grades = Object.keys(grades).map(function (key) { return grades[key]; });
+      self.setState({grades: grades});
+    });
 
     let groupTeachers = {
       lab: [],
@@ -140,12 +164,11 @@ class ThinkScene extends Component {
       });
     });
 
-
-    return {
-      classes: classes,
+    self.setState({
       teachers: groupTeachers,
-      grades: grades
-    }
+      classes: classes
+    });
+
   }
 
   renderClassRow(course) {
@@ -166,7 +189,7 @@ class ThinkScene extends Component {
 
   renderLabTeacherRow(teacher) {
     return (
-      <TouchableOpacity>
+      <View>
         <Row>
           <Icon name="laptop" />
           <View styleName="vertical">
@@ -174,13 +197,18 @@ class ThinkScene extends Component {
               <Subtitle>{teacher.name}</Subtitle>
             </View>
             <Text numberOfLines={1}>{teacher.class}</Text>
-            <Caption styleName="multiline">{teacher.emailAddress}</Caption>
-            <Caption numberOfLines={1}>{teacher.website}</Caption>
+
+            <TouchableOpacity onPress={() => this.openLink(teacher.emailAddress)}>
+              <Caption styleName="multiline">Send Email</Caption>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => this.openLink(teacher.website)}>
+              <Caption numberOfLines={1}>Access teacher personal website</Caption>
+            </TouchableOpacity>
 
           </View>
         </Row>
         <Divider styleName="line"></Divider>
-      </TouchableOpacity>
+      </View>
     )
   }
 
@@ -194,8 +222,12 @@ class ThinkScene extends Component {
               <Subtitle>{teacher.name}</Subtitle>
             </View>
             <Text numberOfLines={1}>{teacher.class}</Text>
-            <Caption styleName="multiline">{teacher.emailAddress}</Caption>
-            <Caption numberOfLines={1}>{teacher.website}</Caption>
+            <TouchableOpacity onPress={() => this.openLink(teacher.emailAddress)}>
+              <Caption styleName="multiline">Send Email</Caption>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => this.openLink(teacher.website)}>
+              <Caption numberOfLines={1}>Access teacher personal website</Caption>
+            </TouchableOpacity>
 
           </View>
         </Row>
@@ -238,6 +270,16 @@ class ThinkScene extends Component {
     propsObject.onButtonPress(grade);
   }
 
+  openLink(address) {
+    Linking.canOpenURL(address).then(supported => {
+      if (!supported) {
+        console.log('Can\'t handle address: ' + address);
+      } else {
+        return Linking.openURL(address);
+      }
+    }).catch(err => console.error('An error occurred', err));
+  };
+
   render() {
     const { onButtonPress } = this.props;
 
@@ -252,14 +294,14 @@ class ThinkScene extends Component {
               <Title style={styles.title}>· Laboratory teachers</Title>
               <ScrollView>
                 <ListView
-                  data={ data.teachers.lab }
+                  data={ this.state.teachers.lab }
                   renderRow = {teacher => this.renderLabTeacherRow(teacher)}>
                 </ListView>
               </ScrollView>
               <Title style={styles.title}>· Lecture teachers</Title>
               <ScrollView>
                 <ListView
-                  data={ data.teachers.lecture }
+                  data={ this.state.teachers.lecture }
                   renderRow = {course => this.renderLectureTeacherRow(course)}>
                 </ListView>
               </ScrollView>
@@ -269,7 +311,7 @@ class ThinkScene extends Component {
             <View title="CLASSES" style={styles.content}>
               <ScrollView>
                 <ListView
-                  data={ data.classes }
+                  data={ this.state.classes }
                   renderRow = {course => this.renderClassRow(course)}>
                 </ListView>
               </ScrollView>
@@ -284,7 +326,7 @@ class ThinkScene extends Component {
                   </Button>
                 </View>
                 <ListView
-                  data={ data.grades }
+                  data={ this.state.grades }
                   renderRow = {grade => this.renderGradeRow(grade)}>
                 </ListView>
               </ScrollView>
@@ -309,4 +351,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
 	undefined,
 	mapDispatchToProps
-)(ThinkScene);
+)(SemesterOverview);

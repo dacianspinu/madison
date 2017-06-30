@@ -20,10 +20,11 @@ import HomeworkScene from './scenes/HomeworkScene/HomeworkScene';
 import SemesterOverviewScene from './scenes/SemesterOverviewScene/SemesterOverviewScene';
 import AnnouncementsScene from './scenes/AnnouncementsScene/AnnouncementsScene';
 import ConversationsScene from './scenes/CommunicationScene/ConversationsScene/ConversationsScene';
+import CreateNewConversationScene from './scenes/CommunicationScene/CreateNewConversationScene/CreateNewConversationScene';
+import ConversationDetailsScene from './scenes/CommunicationScene/ConversationDetailsScene/ConversationDetailsScene'
 import CreateHomeworkScene from './scenes/CreateHomeworkScene/CreateHomeworkScene';
 import CreateTestScene from './scenes/CreateTestScene/CreateTestScene';
 import CreateGradeScene from './scenes/CreateGradeScene/CreateGradeScene';
-
 
 let Scenes = {
   'LoginScene': LoginScene,
@@ -34,9 +35,11 @@ let Scenes = {
   'SemesterOverviewScene': SemesterOverviewScene,
   'AnnouncementsScene': AnnouncementsScene,
   'ConversationsScene': ConversationsScene,
+  'CreateNewConversationScene': CreateNewConversationScene,
+  'ConversationDetailsScene': ConversationDetailsScene,
   'CreateHomeworkScene': CreateHomeworkScene,
   'CreateTestScene': CreateTestScene,
-  'CreateGradeScene': CreateGradeScene
+  'CreateGradeScene': CreateGradeScene,
 }
 
 let firebaseApp = Database.initializeApplication();

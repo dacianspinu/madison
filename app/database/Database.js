@@ -16,29 +16,15 @@ class Database {
       return firebaseApp;
     };
 
-    /**
-     * Sets a users mobile number
-     * @param userId
-     * @param mobile
-     * @returns {firebase.Promise<any>|!firebase.Promise.<void>}
-     */
-    static setUserMobile(userId, mobile) {
-
-        let userMobilePath = "/user/" + userId + "/details";
-
-        return firebase.database().ref(userMobilePath).set({
-            mobile: mobile
-        })
-    };
-
     static getLoggedInStudent(userId) {
       let path = "/students/" + userId;
 
       return firebase.database().ref(path).once('value');
     };
 
-    static getLoggedInStudentGroupSchedule(groupId) {
-      let path = "/groups/" + groupId;
+    static getLoggedInStudentGroupSchedule(groupId, year) {
+      let path = "/groups/" + year + groupId;
+      console.log(path)
 
       return firebase.database().ref(path).once('value');
     };
@@ -93,31 +79,19 @@ class Database {
     static getCurrentStudentHomeworks(studentId) {
       let path = "/students/" + studentId + '/homeworks';
 
-      return firebase.database().ref(path).once('value');
+      return firebase.database().ref(path);
     };
 
     static getCurrentStudentTests(studentId) {
       let path = "/students/" + studentId + '/tests';
 
-      return firebase.database().ref(path).once('value');
+      return firebase.database().ref(path);
     };
 
     static getCurrentStudentExams(year) {
-      const thisDate = new Date();
-      const currentMonth = thisDate.getMonth();
-      let semester;
+      let path = "/exams/years/" + (year-1);
 
-      if (currentMonth >= 9 && currentMonth <= 2) {
-        semester = 1;
-      } else {
-        semester = 2;
-      }
-
-      let path = "/exams/semester/" + semester + "/years/" + (year-1);
-
-      console.log(path);
-
-      return firebase.database().ref(path).once('value');
+      return firebase.database().ref(path);
     };
 
     static saveGradeToStudentProfile(studentId, data) {
@@ -129,7 +103,19 @@ class Database {
     static getLoggedInStudentGrades(studentId) {
       let path = "/students/" + studentId + '/grades';
 
-      return firebase.database().ref(path).once('value');
+      return firebase.database().ref(path);
+    };
+
+    static getAnnouncementsForStudentYear(year) {
+      let path = "/announcements/year_" + year;
+
+      return firebase.database().ref(path);
+    }
+
+    static getAnnouncementsForAllStudents() {
+      let path = "/announcements/all";
+
+      return firebase.database().ref(path);
     }
 
 }

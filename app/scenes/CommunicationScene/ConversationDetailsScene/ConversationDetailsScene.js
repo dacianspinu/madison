@@ -36,9 +36,7 @@ const styles = {
   },
 };
 
-const thirdTab = "GRADES";
-
-class ConversationsScene extends Component {
+class ConversationDetailsScene extends Component {
   static propTypes = {
     onButtonPress: React.PropTypes.func
   };
@@ -51,21 +49,11 @@ class ConversationsScene extends Component {
 
   goToConversation() {
       const propsObject = this.props;
-      const conversation = {};
-      conversation.key = "ConversationDetailsScene";
-      conversation.title = "Radulescu Vlad";
+      const grade = {};
+      grade.key = "ConversationDetails";
+      grade.title = "Radulescu Vlad";
 
-      propsObject.onButtonPress(conversation);
-  }
-
-  goToCreateConversation() {
-    const propsObject = this.props;
-
-    const conversation = {};
-    conversation.key = "CreateNewConversationScene";
-    conversation.title = "Create new conversation";
-
-    propsObject.onButtonPress(conversation);
+      propsObject.onButtonPress(grade);
   }
 
 
@@ -74,11 +62,18 @@ class ConversationsScene extends Component {
 
     return (
       <Screen>
-        <NavigationBar title="Conversations"  />
-          <View styleName="horizontal h-center">
-            <Button styleName="dark" style={styles.content} onPress={() => this.goToCreateConversation()}>
-              <Icon name="comment" />
-              <Text>START NEW CONVERSATION</Text>
+        <NavigationBar title="Radulescu Vlad"  />
+          <View styleName="horizontal" style={styles.content}>
+            <Button styleName="confirmation" onPress={() => this.goToConversation()}>
+              <Row>
+                <View styleName="vertical">
+                  <View styleName="horizontal space-between">
+                    <Caption>Rădulescu Vlad said ...</Caption>
+                    <Caption>27.06.2017</Caption>
+                  </View>
+                  <Text styleName="multiline">Text for conversation</Text>
+                </View>
+              </Row>
             </Button>
           </View>
           <View styleName="horizontal" style={styles.content}>
@@ -86,10 +81,10 @@ class ConversationsScene extends Component {
               <Row>
                 <View styleName="vertical">
                   <View styleName="horizontal space-between">
-                    <Subtitle>Rădulescu Vlad</Subtitle>
+                    <Caption>You said ...</Caption>
                     <Caption>27.06.2017</Caption>
                   </View>
-                  <Text styleName="multiline">Text for conversation</Text>
+                  <Text styleName="multiline">First Text in a series of messages</Text>
                 </View>
               </Row>
             </Button>
@@ -111,4 +106,4 @@ const mapDispatchToProps = (dispatch) => ({
 export default connect(
 	undefined,
 	mapDispatchToProps
-)(ConversationsScene);
+)(ConversationDetailsScene);
