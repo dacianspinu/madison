@@ -32,6 +32,16 @@ import {
 const width = Dimensions.get('window').width; //full width
 const height = Dimensions.get('window').height; //full height
 
+const styles = {
+  startConversationButton: {
+    marginBottom: 20,
+    marginTop: 10,
+    width: 60/100 * width,
+    backgroundColor: "#22C064",
+  }
+}
+
+let student = '';
 
 class CreateNewConversationScreen extends Component {
   static propTypes = {
@@ -45,9 +55,14 @@ class CreateNewConversationScreen extends Component {
       teachers: {
         lab: [{
           name: "Loading ..."
+        }],
+        lecture: [{
+          name: "Loading ..."
         }]
       }
-    }
+    };
+
+    this.createConversationAndNavigateToDetails = this.createConversationAndNavigateToDetails.bind(this);
   }
 
   async componentWillMount() {
@@ -56,7 +71,7 @@ class CreateNewConversationScreen extends Component {
 
   async getTeachers() {
     let self = this;
-    let student = await AsyncStorage.getItem('currentStudent');
+    student = await AsyncStorage.getItem('currentStudent');
     let promises = await Promise.all([Database.getLoggedInStudentGroupSchedule(JSON.parse(student).group, JSON.parse(student).year), Database.getTeachers()]);
 
     let schedule = promises[0].val().schedule;
@@ -101,32 +116,74 @@ class CreateNewConversationScreen extends Component {
 
     self.setState({
       teachers: groupTeachers,
+      selectedLabTeacher: groupTeachers.lab[0],
+      selectedLectureTeacher: groupTeachers.lecture[0]
     });
   }
 
-  render() {
+  async createConversationAndNavigateToDetails(type) {
+    let teacher = {};
+    if (type === 'lab') {
+      teacher = this.state.selectedLabTeacher
+    } else {
+      teacher = this.state.selectedLectureTeacher
+    }
+
     const { onButtonPress } = this.props;
 
+    let conversationId = await Database.createConversation(JSON.parse(student).uid);
+
+    let newConversationDetails = {
+      key: "ConversationDetailsScene",
+      title: teacher.name,
+      teacher: teacher,
+      new: true,
+      conversationId: conversationId
+    }
+
+    onButtonPress(newConversationDetails);
+  }
+
+  render() {
     return (
       <Screen>
         <NavigationBar title="Start a new conversation"  />
           <ScrollView>
-            <Row styleName="small">
-              <Icon name="web" />
-              <Text>Laboratory teachers</Text>
-            </Row>
-            <DropDownMenu
-              options={this.state.teachers.lab}
-              selectedOption={this.state.selectedTeacher ? this.state.selectedTeacher : this.state.teachers.lab[0]}
-              onOptionSelected={(clickedClass) => this.setState({ selectedTeacher: clickedClass })}
-              titleProperty="name"
-              valueProperty="name"
-            />
-            <View styleName="horizontal h-center">
-              <Button styleName="dark">
-                <Icon name="edit" />
-                <Text>Start</Text>
-              </Button>
+            <View styleName="vertical v-center">
+              <Row styleName="small">
+                <Icon name="laptop" />
+                <Text>Laboratory teachers</Text>
+              </Row>
+              <DropDownMenu
+                options={this.state.teachers.lab}
+                selectedOption={this.state.selectedLabTeacher ? this.state.selectedLabTeacher : this.state.teachers.lab[0]}
+                onOptionSelected={(clickedClass) => this.setState({ selectedLabTeacher: clickedClass })}
+                titleProperty="name"
+                valueProperty="name"
+              />
+              <View styleName="horizontal h-center">
+                <Button styleName="dark"  style={styles.startConversationButton} onPress={() => this.createConversationAndNavigateToDetails('lab')}>
+                  <Icon name="edit" style = {{color: 'white'}}/>
+                  <Text style = {{color: 'white'}}>START CONVERSATION</Text>
+                </Button>
+              </View>
+              <Row styleName="small">
+                <Icon name="news" />
+                <Text>Lecture teachers</Text>
+              </Row>
+              <DropDownMenu
+                options={this.state.teachers.lecture}
+                selectedOption={this.state.selectedLectureTeacher ? this.state.selectedLectureTeacher : this.state.teachers.lecture[0]}
+                onOptionSelected={(clickedClass) => this.setState({ selectedLectureTeacher: clickedClass })}
+                titleProperty="name"
+                valueProperty="name"
+              />
+              <View styleName="horizontal h-center">
+                <Button styleName="dark" style = {styles.startConversationButton} onPress={() => this.createConversationAndNavigateToDetails('lecture')}>
+                  <Icon name="edit" style = {{color: 'white'}}/>
+                  <Text style = {{color: 'white'}}>START CONVERSATION</Text>
+                </Button>
+              </View>
             </View>
           </ScrollView>
       </Screen>
@@ -135,11 +192,12 @@ class CreateNewConversationScreen extends Component {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  onButtonPress: (type) => {
+  onButtonPress: (conversation) => {
+    console.log(conversation);
     dispatch(navigatePush({
-      key: type.key,
-      title: type.title,
-    }, { type }));
+      key: conversation.key,
+      title: conversation.title,
+    }, { conversation }));
   },
 });
 

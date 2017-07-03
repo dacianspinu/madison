@@ -9,7 +9,7 @@ import Root from './root';
 
 StatusBar.setBarStyle('light-content');
 
-
+console.disableYellowBox = true;
 class Madison extends Component {
 
 }

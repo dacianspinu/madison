@@ -109,7 +109,8 @@ export default class PresentFutureScene extends Component {
 
   computeTabNames(schedule) {
     let currentMoment = moment();
-    const currentDayOfTheWeek = moment(currentMoment).isoWeekday();
+    const currentDayOfTheWeek = moment(currentMoment).add(2, 'days').isoWeekday();
+    console.log(currentDayOfTheWeek);
 
     if (currentDayOfTheWeek > 6) {
       firstTab = "WEEKEND"
@@ -120,10 +121,11 @@ export default class PresentFutureScene extends Component {
     } else if (currentDayOfTheWeek >=1 && currentDayOfTheWeek <=3) {
       firstTab = "TODAY";
       secondTab = "TOMORROW";
-      thirdTab = moment(currentMoment).add(2, 'days').format('dddd').toUpperCase();
+      thirdTab = moment(currentMoment).add(4, 'days').format('dddd').toUpperCase();
       firstTabData = schedule[currentDayOfTheWeek];
       secondTabData = schedule[currentDayOfTheWeek + 1];
       thirdTabData = schedule[currentDayOfTheWeek + 2];
+      console.log(thirdTab)
     } else if (currentDayOfTheWeek === 4) {
       firstTab = "TODAY"
       secondTab = moment(currentMoment).add(1, 'day').format('dddd').toUpperCase();

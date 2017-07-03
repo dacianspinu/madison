@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Dimensions, StyleSheet, } from 'react-native';
+import {Dimensions, StyleSheet, AsyncStorage, ScrollView} from 'react-native';
 
 import {
   Image,
@@ -22,6 +22,7 @@ import * as firebase from 'firebase';
 
 import { connect } from 'react-redux';
 import { navigatePush } from '../../../reducers/redux';
+import Database from '../../../database/Database';
 
 import {
   NavigationBar,
@@ -33,10 +34,11 @@ const height = Dimensions.get('window').height; //full height
 const styles = {
   content: {
     marginTop: 20,
+    marginBottom: 20
   },
 };
 
-const thirdTab = "GRADES";
+let student = "";
 
 class ConversationsScene extends Component {
   static propTypes = {
@@ -47,15 +49,26 @@ class ConversationsScene extends Component {
     super(props);
 
     this.goToConversation = this.goToConversation.bind(this);
+    this.state = {
+      conversations: []
+    }
   }
 
-  goToConversation() {
-      const propsObject = this.props;
-      const conversation = {};
-      conversation.key = "ConversationDetailsScene";
-      conversation.title = "Radulescu Vlad";
+  async componentDidMount() {
+    this.getConversations()
+  }
 
-      propsObject.onButtonPress(conversation);
+  goToConversation(conversation) {
+    const { onButtonPress } = this.props;
+    let newConversationDetails = {
+      key: "ConversationDetailsScene",
+      title: conversation.teacher.name,
+      teacher: conversation.teacher,
+      new: false,
+      conversationId: conversation.id
+    }
+
+    onButtonPress(newConversationDetails);
   }
 
   goToCreateConversation() {
@@ -66,6 +79,62 @@ class ConversationsScene extends Component {
     conversation.title = "Create new conversation";
 
     propsObject.onButtonPress(conversation);
+  }
+
+  renderConversationRow(conversation) {
+    let lastMessage = conversation.messages.reverse()[0];
+    if (lastMessage.sender === JSON.parse(student).firstName + ' ' + JSON.parse(student).lastName) {
+      lastMessage.sender = "You"
+    }
+    return (
+      <View>
+        <Button styleName="confirmation" onPress={() => this.goToConversation(conversation)}>
+          <Row>
+            <View styleName="vertical">
+              <View styleName="horizontal space-between">
+                <Subtitle>{conversation.teacher.name}</Subtitle>
+                <Caption>{lastMessage.sentAt}</Caption>
+              </View>
+              <Text styleName="multiline">{lastMessage.sender}: {lastMessage.content}</Text>
+            </View>
+          </Row>
+        </Button>
+
+        <Divider styleName="line"></Divider>
+      </View>
+    )
+  }
+
+  async getConversations() {
+    let self = this;
+    student = await AsyncStorage.getItem('currentStudent');
+    let promises = await Promise.all([Database.getCurrentStudentConversations(JSON.parse(student).uid)]);
+
+
+    promises[0].on('value', function(snapshot) {
+      let conversationIds = snapshot.val();
+      let conversations = [];
+
+      if (conversationIds) {
+        conversationIds = Object.keys(conversationIds).map(function (key) { return conversationIds[key]; });
+        let numberOfConversations = conversationIds.length - 1;
+        let iterator = 0;
+        conversationIds.forEach(async function(conversationId) {
+          if (typeof conversationId === 'object') {
+            let conversation = await Database.getConversationMessages(conversationId.conversationId);
+            conversation = conversation.val();
+            conversation.id = conversationId.conversationId;
+            conversation.messages = Object.keys(conversation.messages).map(function (key) { return conversation.messages[key]; });
+            conversations.push(conversation);
+            iterator++;
+            if (iterator === numberOfConversations) {
+              self.setState({conversations: conversations});
+            }
+          }
+        });
+
+      }
+    });
   }
 
 
@@ -81,30 +150,21 @@ class ConversationsScene extends Component {
               <Text>START NEW CONVERSATION</Text>
             </Button>
           </View>
-          <View styleName="horizontal" style={styles.content}>
-            <Button styleName="confirmation" onPress={() => this.goToConversation()}>
-              <Row>
-                <View styleName="vertical">
-                  <View styleName="horizontal space-between">
-                    <Subtitle>Rădulescu Vlad</Subtitle>
-                    <Caption>27.06.2017</Caption>
-                  </View>
-                  <Text styleName="multiline">Text for conversation</Text>
-                </View>
-              </Row>
-            </Button>
-          </View>
+              <ListView
+                data={ this.state.conversations.reverse() }
+                renderRow = {conversation => this.renderConversationRow(conversation)}>
+              </ListView>
       </Screen>
     );
   }
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  onButtonPress: (type) => {
+  onButtonPress: (conversation) => {
     dispatch(navigatePush({
-      key: type.key,
-      title: type.title,
-    }, { type }));
+      key: conversation.key,
+      title: conversation.title,
+    }, { conversation }));
   },
 });
 

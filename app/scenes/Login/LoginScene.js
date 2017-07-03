@@ -114,12 +114,15 @@ class LoginScene extends Component {
               style={formInput}
               onChangeText={(emailAddress) => this.setState({emailAddress})}
               autoCapitalize="none"
+              autoCorrect = {false}
             />
             <TextInput
               placeholder="Password"
               style={formInput}
               secureTextEntry
               onChangeText={(accountPassword) => this.setState({accountPassword})}
+              autoCorrect = {false}
+              autoCapitalize="none"
             />
             <Button style={button} onPress={() => this.authenticateUser(this.state.emailAddress, this.state.accountPassword)}>
               <Text>LOG IN</Text>

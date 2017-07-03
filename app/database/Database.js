@@ -1,5 +1,5 @@
 import * as firebase from "firebase";
-
+const moment = require('moment');
 class Database {
     static initializeApplication() {
       const firebaseConfig = {
@@ -116,8 +116,71 @@ class Database {
       let path = "/announcements/all";
 
       return firebase.database().ref(path);
+    };
+
+    static createConversation(studentUid) {
+      let conversationsPath = "/conversations";
+      return firebase.database().ref(conversationsPath).push().key;
+    };
+
+    static addMessageToConversation(conversationUid, message) {
+      let path = "/conversations/" + conversationUid + "/messages";
+
+      return firebase.database().ref(path).push(message);
+    };
+
+    static getMessagesForConversation(conversationUid) {
+      let path = "/conversations/" + conversationUid + "/messages";
+      return firebase.database().ref(path);
+    };
+
+    static updateConversationsListForStudent(conversationUid, studentId) {
+      let path = "/students/" + studentId + "/conversations";
+
+      let conversationObject = {
+        conversationId: conversationUid
+      };
+
+      return firebase.database().ref(path).push(conversationObject);
+    };
+
+    static getCurrentStudentConversations(studentId) {
+      let path = "/students/" + studentId + "/conversations";
+
+      return firebase.database().ref(path);
+    };
+
+    static getConversationMessages(conversationId) {
+      let path = "/conversations/" + conversationId;
+
+      return firebase.database().ref(path).once('value');
     }
 
+    static updateConversationWithParticipants(conversationUid, teacher, student) {
+      let path = "/conversations/" + conversationUid;
+
+      return firebase.database().ref(path).update({
+        "teacher": teacher,
+        "student": JSON.parse(student)
+      })
+    }
+
+    static updateLastMessagesSyncForStudent(studentUid) {
+      let path = "/students/" + studentUid + "/conversations";
+      return firebase.database().ref(path).update({
+        "lastUpdate": firebase.database.ServerValue.TIMESTAMP
+      })
+    };
+
+    static updateConversationsListForTeacher(conversationUid, teacherId) {
+      let path = "/teachers/" + teacherId + "/conversations";
+
+      let conversationObject = {
+        conversationId: conversationUid
+      };
+
+      return firebase.database().ref(path).push(conversationObject);
+    }
 }
 
 module.exports = Database;
