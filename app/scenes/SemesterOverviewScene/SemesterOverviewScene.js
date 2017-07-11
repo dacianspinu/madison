@@ -121,7 +121,7 @@ class SemesterOverview extends Component {
     promises[2].on('value', function(snapshot) {
       grades = snapshot.val();
       grades = Object.keys(grades).map(function (key) { return grades[key]; });
-      self.setState({grades: grades});
+      self.setState({grades: grades.reverse()});
     });
 
     let groupTeachers = {
